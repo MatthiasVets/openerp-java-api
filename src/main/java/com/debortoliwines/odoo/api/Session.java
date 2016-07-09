@@ -167,9 +167,14 @@ public class Session {
 	void checkDatabasePresence() throws XmlRpcException {
 		ArrayList<String> dbList = getDatabaseList(protocol, host, port);
 		if (!dbList.contains(databaseName)) {
+			StringBuilder dbInfo = new StringBuilder();
+			for (String db : dbList) {
+				dbInfo.append(db);
+				dbInfo.append(LINE_SEPARATOR);
+			}
 			StringBuilder messageBuilder = new StringBuilder("Error while connecting to Odoo.  Database [")
 					.append(databaseName).append("]  was not found in the following list: ").append(LINE_SEPARATOR)
-					.append(LINE_SEPARATOR).append(String.join(LINE_SEPARATOR, dbList)).append(LINE_SEPARATOR);
+					.append(LINE_SEPARATOR).append(dbInfo.toString()).append(LINE_SEPARATOR);
 
 			throw new IllegalStateException(messageBuilder.toString());
 		}

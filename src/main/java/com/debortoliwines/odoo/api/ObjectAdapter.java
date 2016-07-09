@@ -21,15 +21,14 @@ package com.debortoliwines.odoo.api;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.xmlrpc.XmlRpcException;
 
@@ -536,10 +535,15 @@ public class ObjectAdapter {
 	}
 
 	private String[] getFieldListForImport(FieldCollection currentFields) {
-		return Stream
-				.concat(Stream.of(".id"),
-						currentFields.stream().map(ObjectAdapter::getFieldNameForImport))
-				.toArray(String[]::new);
+		List<String> names = new ArrayList<>();
+		for (Field field : currentFields) {
+			names.add(getFieldNameForImport(field));
+		}
+		return (String[]) names.toArray();
+//		return Stream
+//				.concat(Stream.of(".id"),
+//						currentFields.stream().map(ObjectAdapter::getFieldNameForImport))
+//				.toArray(String[]::new);
 
 	}
 
@@ -651,11 +655,21 @@ public class ObjectAdapter {
 		if (results.get("ids") instanceof Boolean) {
 			// There was an error. ids is false and not an Object[]
 			Map<String, Object>[] messages = (Map<String, Object>[]) results.get("messages");
-			String errorString = Arrays.stream(messages)
-					.flatMap(m -> m.entrySet().stream())
-					.map(e -> String.join(":", e.getKey(), e.getValue().toString()))
-					.collect(Collectors.joining("\n"));
-			throw new OpeneERPApiException(errorString);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < messages.length; i++) {
+				Set<Entry<String, Object>> entrySet = messages[i].entrySet();
+				for (Entry<String, Object> entry : entrySet) {
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+				}
+				sb.append("\n");
+			}
+//			String errorString = Arrays.stream(messages)
+//					.flatMap(m -> m.entrySet().stream())
+//					.map(e -> String.join(":", e.getKey(), e.getValue().toString()))
+//					.collect(Collectors.joining("\n"));
+			throw new OpeneERPApiException(sb.toString());
 		}
 
 		// Should be in the same order as it was passed in

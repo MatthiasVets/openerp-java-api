@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import org.apache.xmlrpc.XmlRpcException;
 
@@ -113,9 +113,12 @@ public class FlatViewHelper {
 	 */
 	public static String[] getFieldNames(String objectName, FieldCollection fields) throws XmlRpcException {
 		
-		return getFields(objectName, fields).stream()
-				.map(f -> f.getName())
-				.toArray(String[]::new);
+		FlatViewFieldCollection fieldCollection = getFields(objectName, fields);
+		List<String> names = new ArrayList<>();
+		for (FlatViewField flatViewField : fieldCollection) {
+			names.add(flatViewField.getName());
+		}
+		return (String[]) names.toArray();
 	}
 	
 	/**
@@ -123,14 +126,19 @@ public class FlatViewHelper {
 	 * @param fields Flattened out field collection 
 	 * @return Original list of fields that the flattened out collection was built on
 	 */
+	//TODO review??
 	public static String[] getOriginalFieldNames(FlatViewFieldCollection fields){
-		
-		return fields.stream()
-				.collect(Collectors.toMap(
-						f -> f.getSourceField().getName(), 
-						f -> f.getName(), 
-						(f1, f2) -> f1))
-				.values().toArray(new String[0]);
+		List<String> names = new ArrayList<>();
+		for (FlatViewField field : fields) {
+			names.add(field.getSourceField().getName());
+		}
+		return (String[]) names.toArray();
+//		return fields.stream()
+//				.collect(Collectors.toMap(
+//						f -> f.getSourceField().getName(), 
+//						f -> f.getName(), 
+//						(f1, f2) -> f1))
+//				.values().toArray(new String[0]);
 	}
 	
 	/**
